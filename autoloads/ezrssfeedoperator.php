@@ -37,8 +37,6 @@
 /*! \file eZRSSFeedOperator.php
 */
 
-include_once( "lib/ezutils/classes/ezdebug.php" );
-
 /*!
   \class eZRSSFeedOperator eZRSSFeedoperator.php
   \brief The class eZRSSFeedOperator does
@@ -52,11 +50,11 @@ class eZRSSFeedOperator
     function eZRSSFeedOperator( $name = "ezrssfeed" )
     {
         eZDebug::createAccumulatorGroup( 'rssfeed_total', 'eZRSSfeed extension Total' );
-	$this->Operators = array( $name );
+	    $this->Operators = array( $name );
     }
 
     /*!
-Returns the template operators.
+     Returns the template operators.
     */
     function &operatorList()
     {
@@ -68,22 +66,23 @@ Returns the template operators.
         return array( 'rss_url' => array( 'type' => 'string',
                                            'required' => true,
                                            'default' => false ),
-		      'rss_items' => array( 'type' => 'integer',
-		                            'required' => false,
-					    'default' => 4),
-		      'rss_channeldata' => array( 'type' => 'boolean',
-						  'required' => false,
-						  'default' => false),
-		      'rss_imagedata' => array( 'type' => 'boolean',
-		                                'required' => false,
-			                        'default' => false)
+		              'rss_items' => array( 'type' => 'integer',
+		                                    'required' => false,
+					                        'default' => 4),
+		              'rss_channeldata' => array( 'type' => 'boolean',
+					                              'required' => false,
+						                          'default' => false),
+		              'rss_imagedata' => array( 'type' => 'boolean',
+		                                        'required' => false,
+			                                    'default' => false)
 		    );
     }
 
     function getNodes( $dom, $node, $limit = 'disabled', $uniqeNode = 0 )
     {
-        $elements =& $dom->elementsByName( $node );
-        $i=0;
+        $elements = $dom->getElementsByTagName( $node );
+        $elementArray = array();
+        $i = 0;
 
         foreach( $elements as $element )
         {
@@ -92,13 +91,13 @@ Returns the template operators.
                 break;
 
             // Loop through every child and grab the content
-            foreach ( $element->children() as $childNode )
+            foreach ( $element->childNodes as $childNode )
             {
                 if ( $uniqeNode == 0 ) {
-                    $elementArray[$i][$childNode->name()]['content'] = $childNode->textContent();
+                    $elementArray[$i][$childNode->localName]['content'] = $childNode->textContent;
                 }
                 else {
-                    $elementArray[$childNode->name()]['content'] = $childNode->textContent();
+                    $elementArray[$childNode->localName]['content'] = $childNode->textContent;
                 }
             }
             $i++;
@@ -108,19 +107,19 @@ Returns the template operators.
 
     function modify( &$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters )
     {
-        include_once( "lib/ezxml/classes/ezxml.php" );
-
         eZDebug::accumulatorStart( 'rssfeed_total' );
         eZDebug::accumulatorStart( 'rssfeed_load', 'rssfeed_total', 'RSSfeed load' );
 
+        $rssUrl = $namedParameters['rss_url'];
+
         // Open file
-        $fp = fopen( $namedParameters['rss_url'], "r" );
+        $fp = fopen( $rssUrl, "r" );
         if ( !$fp )
         {
             return false;
         }
-	
-	$rssFileContent = "";
+
+        $rssFileContent = "";
 
         // Get the content of the file
         while( !feof( $fp ) )
@@ -132,9 +131,15 @@ Returns the template operators.
         eZDebug::accumulatorStop( 'rssfeed_load' );
         eZDebug::accumulatorStart( 'rssfeed_createdom', 'rssfeed_total', 'RSSfeed create DOM' );
 
+        if (empty($rssFileContent))
+        {
+            return false;
+        }
+
         // New xml parser.
-        $xml = new eZXML();
-        $dom =& $xml->domTree( $rssFileContent );
+        $xml = new DOMDocument();
+        $domLoad = $xml->loadXML( $rssFileContent );
+        $dom = $xml;
         if ( !$dom )
         {
             return false;
