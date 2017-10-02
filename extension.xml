@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<software>
+    <metadata>
+        <name>eZ RSS Feed</name>
+        <version>1.2</version>
+        <copyright>Copyright (C) 1999 - 2017 Brookins Consulting and Kristian Hole and Ole Morten Halvorsen</copyright>
+        <license>GNU General Public License</license>
+        <info_url>https://github.com/brookinsconsulting/ezrssfeed</info_url>
+    </metadata>
+</software>
